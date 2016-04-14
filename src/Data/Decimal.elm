@@ -31,10 +31,51 @@ module Data.Decimal
 
 {-|
 
+# The datatype
 @docs Decimal
 
+# From stuff
+@docs fromInt
+@docs fromIntWithExponent
+@docs fromString
+@docs fromFloat
+@docs unsafeFromString
+
+# To stuff
+@docs toString
+@docs toFloat
+
+# Arithmetic operations
+@docs add
+@docs sub
+@docs negate
+@docs mul
+@docs fastdiv
+
+# Rounding
+@docs truncate
+@docs round
+
+# Comparing
+@docs gt
+@docs gte
+@docs eq
+@docs neq
+@docs lt
+@docs lte
+@docs compare
+
+# Misc operations
+@docs abs
+@docs getDigit
+
+# Common numbers
+@docs zero
+@docs one
+@docs minusOne
 
 -}
+
 import Data.Integer
 import Maybe exposing (Maybe)
 import String
@@ -44,20 +85,29 @@ import Debug
 type alias Mantissa = Data.Integer.Integer
 type alias Exponent = Int
 
-{-| 
+{-|
 The Decimal data type
 It is represented as mantissa * 10 ^ exponent
 -}
 
 type Decimal = Decimal Mantissa Exponent
 
+{-|
+Converts an Int to a Decimal
+-}
 fromInt : Int -> Decimal
 fromInt n = fromIntWithExponent n 0
 
+{-|
+Converts an Int to a Decimal, but specifying the exponent
+-}
 fromIntWithExponent : Int -> Int -> Decimal
 fromIntWithExponent n e =
     Decimal (Data.Integer.fromInt n) e
 
+{-|
+Converts a String to a Maybe Decimal. The string shall be in the format [<sign>]<numbers>[.<numbers>][e<numbers>]
+-}
 fromString : String -> Maybe Decimal
 fromString s =
     let stringToDecimal s =
@@ -87,6 +137,12 @@ fromString s =
         (Just (Decimal m a), Ok e) -> Just (Decimal m (e+a))
         _ -> Nothing
 
+{-|
+Converts a String to a Decimal,
+but if the string does not represent
+a valid Decimal, it crashes.
+Useful for Decimal constants.
+-}
 unsafeFromString : String -> Decimal
 unsafeFromString s =
     case fromString s of
@@ -102,6 +158,9 @@ insert_decimal_period pos s =
     in
     before ++ "." ++ after
 
+{-|
+Converts a Decimal to a String
+-}
 toString : Decimal -> String
 toString (Decimal m e) =
     let abs_m = if m `Data.Integer.gte` (Data.Integer.fromInt 0) then m else Data.Integer.opposite m
@@ -114,27 +173,31 @@ toString (Decimal m e) =
         GT -> sign ++ s ++ (add_zeros e)
         LT -> sign ++ insert_decimal_period (0-e) s
 
+{-|
+Converts a Decimal to a Float
+-}
 toFloat : Decimal -> Float
 toFloat d = 
     case String.toFloat (toString d) of
         Ok a -> a
         Err _ -> 42.0
 
-fromFloat : Float -> Decimal
-fromFloat f =
-    case fromString (Basics.toString f) of
-        Just a -> a
-        Nothing -> fromInt 42
+{-|
+Converts a Float to a Decimal
+-}
+fromFloat : Float -> Maybe Decimal
+fromFloat f = fromString (Basics.toString f)
 
-fastdiv : Decimal -> Decimal -> Decimal
+{-|
+Fast and dirty division. Don't expect too much precision from this division. Dividing by zero is bad, and Nothing will be returned.
+-}
+fastdiv : Decimal -> Decimal -> Maybe Decimal
 fastdiv a b =
     let fa = toFloat a
         fb = toFloat b
         res = fa / fb
     in
-    fromFloat res 
-
-{-roundToExponent : Exponent -> Decimal -> Decimal-}
+    fromFloat res
 
 addDecimals : Int -> Decimal -> Decimal
 addDecimals i (Decimal m e) =
@@ -156,6 +219,9 @@ toCommonExponent (a, b) =
     in
     (toExponent exponent a, toExponent exponent b)
 
+{-|
+Addition
+-}
 add : Decimal -> Decimal -> Decimal
 add a b =
     let (ra, rb) = toCommonExponent (a, b)
@@ -163,22 +229,37 @@ add a b =
         (Decimal mb eb) = rb in
     Decimal (ma `Data.Integer.add` mb) ea
 
+{-|
+Changes the sign of a Decimal
+-}
 negate : Decimal -> Decimal
 negate (Decimal m e) = Decimal (Data.Integer.opposite m) e
 
+{-|
+Substraction
+-}
 sub : Decimal -> Decimal -> Decimal
 sub a b = add a (negate b)
 
+{-|
+Multiplication
+-}
 mul : Decimal -> Decimal -> Decimal
 mul (Decimal ma ea) (Decimal mb eb) =
     Decimal (ma `Data.Integer.mul` mb) (ea + eb)
 
+{-|
+Absolute value (sets the sign as positive)
+-}
 abs : Decimal -> Decimal
 abs (Decimal m e) =
     case Data.Integer.compare m (Data.Integer.fromInt 0) of
         LT -> Decimal (Data.Integer.opposite m) e
         _ -> Decimal m e
 
+{-|
+Compares two Decimals
+-}
 compare : Decimal -> Decimal -> Order
 compare a b =
     let (fa, fb) = toCommonExponent (a, b)
@@ -187,48 +268,91 @@ compare a b =
     in
     Data.Integer.compare ma mb
 
+{-|
+Equals
+-}
 eq : Decimal -> Decimal -> Bool
 eq a b =
     case compare a b of
         EQ -> True
         _ -> False
 
+{-|
+Not equals
+-}
 neq : Decimal -> Decimal -> Bool
 neq a b = not (eq a b)
 
+{-|
+Greater than
+-}
 gt : Decimal -> Decimal -> Bool
 gt a b =
     case compare a b of
         GT -> True
         _ -> False
 
+{-|
+Greater than or equals
+-}
 gte : Decimal -> Decimal -> Bool
 gte a b = (gt a b) || (eq a b)
 
+{-|
+Less than
+-}
 lt : Decimal -> Decimal -> Bool
 lt a b =
     case compare a b of
         LT -> True
         _ -> False
 
+{-|
+Less than or equals
+-}
 lte : Decimal -> Decimal -> Bool
 lte a b = (lt a b) || (eq a b)
 
+{-|
+The number 0
+-}
 zero : Decimal
 zero = fromInt 0
 
+{-|
+The number 1
+-}
 one : Decimal
 one = fromInt 1
 
+{-|
+The number -1
+-}
 minusOne : Decimal
 minusOne = fromInt -1
 
+{-|
+True if the number is positive or zero
+-}
 isPositive : Decimal -> Bool
 isPositive x = x `gte` zero
 
+{-|
+True if the number is negative (but not zero)
+-}
 isNegative : Decimal -> Bool
 isNegative x = not (isPositive x)
 
+{-|
+Gets the specified digit from a Decimal. The digits are:
+0 -> units
+1 -> tens
+2 -> hundreds
+and so on
+-1 -> tenths
+-2 -> hundredths
+and so on
+-}
 getDigit : Int -> Decimal -> Int
 getDigit n d =
     let s = toString d in
@@ -262,6 +386,9 @@ getDigit n d =
             toInt (String.left 1 (String.dropLeft (-n-1) b))
         _ -> -13
 
+{-|
+Truncates the Decimal to the specified decimal places
+-}
 truncate : Int -> Decimal -> Decimal
 truncate n d =
     let s = toString d in
@@ -284,6 +411,9 @@ signAsInt d =
         EQ -> 0
         GT -> 1
 
+{-|
+Rounds the Decimal to the specified decimal places
+-}
 round : Int -> Decimal -> Decimal
 round n d =
     let t = truncate n d

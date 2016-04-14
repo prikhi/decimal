@@ -1,5 +1,5 @@
 import Data.Decimal exposing (..)
-import Maybe exposing (Maybe)
+import Maybe exposing (Maybe, andThen)
 import ElmTest exposing (..)
 import Graphics.Element exposing (show, flow, down, Element, leftAligned)
 
@@ -8,13 +8,15 @@ liftMaybe f a b =
     case (a, b) of
         (Just va, Just vb) -> Just (f va vb)
         _ -> Nothing
+
 dtoString = Data.Decimal.toString
 dnegate = Data.Decimal.negate
 dcompare : Maybe Decimal -> Maybe Decimal -> Maybe Order
 dcompare = liftMaybe Data.Decimal.compare
-dtruncate = Data.Decimal.truncate
-dround = Data.Decimal.round
+dtruncate n x = Just (Data.Decimal.truncate n x)
+dround n x = Just (Data.Decimal.round n x)
 uFromString = Data.Decimal.unsafeFromString
+
 
 addTests : Test
 addTests =
@@ -26,6 +28,7 @@ addTests =
         [ equals (one `add` two) three
         ]
 
+
 subTests : Test
 subTests =
     let one = fromInt 1
@@ -36,6 +39,7 @@ subTests =
         [ equals (three `sub` two) one
         , equals (dnegate (dnegate one)) one
         ]
+
 
 mulTests : Test
 mulTests =
@@ -49,6 +53,7 @@ mulTests =
         , equals (mul two (dnegate three)) (dnegate six)
         ]
 
+
 fromStringTests : Test
 fromStringTests =
     suite "fromString testsuite"
@@ -61,16 +66,18 @@ fromStringTests =
         , equals (fromString "3.3") (Just (fromIntWithExponent 33 -1))
         ]
 
+
 fromFloatTests : Test
 fromFloatTests =
     suite "fromFloat testsuite"
-        [ equals (fromFloat 1) (fromInt 1)
-        , equals (fromFloat -1) (fromInt -1)
-        , equals (fromFloat -4521) (fromInt -4521)
-        , equals (fromFloat 3.3) (uFromString "3.3")
-        , equals (fromFloat -3.4) (uFromString "-3.4")
-        , equals (fromFloat 11e-1) (uFromString "1.1")
+        [ equals (fromFloat 1) (Just (fromInt 1))
+        , equals (fromFloat -1) (Just (fromInt -1))
+        , equals (fromFloat -4521) (Just (fromInt -4521))
+        , equals (fromFloat 3.3) (fromString "3.3")
+        , equals (fromFloat -3.4) (fromString "-3.4")
+        , equals (fromFloat 11e-1) (fromString "1.1")
         ]
+
 
 toStringTests : Test
 toStringTests =
@@ -84,13 +91,15 @@ toStringTests =
         , equals "-1234.5678" (dtoString (fromIntWithExponent -12345678 -4))
         ]
 
+
 fastdivTests : Test
 fastdivTests =
     suite "fastdiv testsuite"
-        [ equals "0.1" (dtoString ((fromInt 1) `fastdiv` (fromInt 10))) 
-        , equals "0.3333333333333333" (dtoString ((fromInt 1) `fastdiv` (fromInt 3))) 
-        , equals "0.6666666666666666" (dtoString ((fromInt 1200) `fastdiv` (fromInt 1800))) 
+        [ equals (fromString "0.1") ((fromInt 1) `fastdiv` (fromInt 10))
+        , equals (fromString "0.3333333333333333") ((fromInt 1) `fastdiv` (fromInt 3))
+        , equals (fromString "0.6666666666666666") ((fromInt 1200) `fastdiv` (fromInt 1800))
         ]
+
 
 compareTests : Test
 compareTests =
@@ -102,12 +111,13 @@ compareTests =
         , equals (Just GT) (dcompare (fromString "1.0") (Just (fromInt -10)))
         ]
 
+
 roundTests : Test
 roundTests =
     suite "round testsuite"
-        [ equals "0.3333" (dtoString (dround -4 ((fromInt 1) `fastdiv` (fromInt 3))))
-        , equals "0.6667" (dtoString (dround -4 ((fromInt 1200) `fastdiv` (fromInt 1800))))
-        , equals "-0.6667" (dtoString (dround -4 ((fromInt -1200) `fastdiv` (fromInt 1800))))
+        [ equals (fromString "0.3333") (((fromInt 1) `fastdiv` (fromInt 3)) `andThen` dround -4)
+        , equals (fromString "0.6667") (((fromInt 1200) `fastdiv` (fromInt 1800)) `andThen` dround -4)
+        , equals (fromString "-0.6667") (((fromInt -1200) `fastdiv` (fromInt 1800)) `andThen` dround -4)
         , equals 3 (getDigit 2 (uFromString "12345"))
         , equals 0 (getDigit -1 (uFromString "12345"))
         , equals 3 (getDigit 0 (uFromString "123.45"))
@@ -116,13 +126,15 @@ roundTests =
         , equals 0 (getDigit 2 (uFromString "0.45"))
         ]
 
+
 truncateTests : Test
 truncateTests =
     suite "truncate testsuite"
-        [ equals "0.3333" (dtoString (dtruncate -4 ((fromInt 1) `fastdiv` (fromInt 3))))
-        , equals "0.6666" (dtoString (dtruncate -4 ((fromInt 1200) `fastdiv` (fromInt 1800))))
-        , equals "-0.6666" (dtoString (dtruncate -4 ((fromInt -1200) `fastdiv` (fromInt 1800))))
+        [ equals (fromString "0.3333") (((fromInt 1) `fastdiv` (fromInt 3)) `andThen` dtruncate -4)
+        , equals (fromString "0.6666") (((fromInt 1200) `fastdiv` (fromInt 1800)) `andThen` dtruncate -4)
+        , equals (fromString "-0.6666") (((fromInt -1200) `fastdiv` (fromInt 1800)) `andThen` dtruncate -4)
         ]
+
 
 allTests : Test
 allTests =

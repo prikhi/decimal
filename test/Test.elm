@@ -2,6 +2,12 @@ import Data.Decimal exposing (..)
 import Maybe exposing (Maybe, andThen)
 import ElmTest exposing (..)
 import Graphics.Element exposing (show, flow, down, Element, leftAligned)
+import Check exposing (Claim, claim, that, is, for, quickCheck, true)
+import Check.Producer exposing (list, int, Producer, char, ascii, filter, tuple, map, func2, rangeInt)
+import Check.Test
+
+decimal : Producer Decimal
+decimal = map (\(a, b) -> fromIntWithExponent a b) (tuple (int, rangeInt (-20) 20))
 
 liftMaybe : (a -> b -> c) -> Maybe a -> Maybe b -> Maybe c
 liftMaybe f a b =
@@ -28,6 +34,19 @@ addTests =
         [ equals (one `add` two) three
         ]
 
+qcAdd : Claim
+qcAdd =
+  Check.suite "Quickcheck Add"
+    [ claim "Integer Conmutative adding"
+      `that` (\(a, b) -> (fromInt a) `add` (fromInt b))
+      `is` (\(a, b) -> (fromInt b) `add` (fromInt a))
+      `for` tuple (int, int)
+    , claim "Conmutative adding"
+      `that` (\(a, b) -> a `add` b)
+      `is` (\(a, b) -> b `add` a)
+      `for` tuple (decimal, decimal)
+    ]
+
 
 subTests : Test
 subTests =
@@ -39,6 +58,15 @@ subTests =
         [ equals (three `sub` two) one
         , equals (dnegate (dnegate one)) one
         ]
+
+qcSub : Claim
+qcSub =
+  Check.suite "Quickcheck Substract"
+    [ claim "Integer conmutative substracting"
+      `that` (\(a, b) -> (fromInt a) `sub` (fromInt b))
+      `is` (\(a, b) -> dnegate ((fromInt b) `sub` (fromInt a)))
+      `for` tuple (int, int)
+    ]
 
 
 mulTests : Test
@@ -52,6 +80,15 @@ mulTests =
         [ equals (mul two three) six
         , equals (mul two (dnegate three)) (dnegate six)
         ]
+
+qcMul : Claim
+qcMul =
+  Check.suite "Quickcheck multiplication"
+    [ claim "Integer conmutative multiplication"
+      `that` (\(a, b) -> (fromInt a) `mul` (fromInt b))
+      `is` (\(a, b) -> (fromInt b) `mul` (fromInt a))
+      `for` tuple (int, int)
+    ]
 
 
 fromStringTests : Test
@@ -111,6 +148,23 @@ compareTests =
         , equals (Just GT) (dcompare (fromString "1.0") (Just (fromInt -10)))
         ]
 
+qcCompare : Claim
+qcCompare =
+  Check.suite "Quickcheck compare"
+    [ claim "Integer greater than"
+      `that` (\a -> Data.Decimal.compare (fromInt a) (fromInt (a - 1)))
+      `is` (\a -> GT)
+      `for` int
+    , claim "Integer equals"
+      `that` (\a -> Data.Decimal.compare (fromInt a) (fromInt (a + 0)))
+      `is` (\a -> EQ)
+      `for` int
+    , claim "Integer less than"
+      `that` (\a -> Data.Decimal.compare (fromInt a) (fromInt (a + 1)))
+      `is` (\a -> LT)
+      `for` int
+    ]
+
 
 roundTests : Test
 roundTests =
@@ -149,6 +203,10 @@ allTests =
         , compareTests
         , roundTests
         , truncateTests
+        , (Check.Test.evidenceToTest (quickCheck qcAdd))
+        , (Check.Test.evidenceToTest (quickCheck qcSub))
+        , (Check.Test.evidenceToTest (quickCheck qcMul))
+        , (Check.Test.evidenceToTest (quickCheck qcCompare))
         ]
 
 main : Element

@@ -1,4 +1,4 @@
-module Data.Decimal
+module Data.Decimal exposing
     ( Decimal
     , fromInt
     , fromIntWithExponent
@@ -26,7 +26,7 @@ module Data.Decimal
     , truncate
     , round
     , getDigit
-    ) where
+    )
 
 
 {-|
@@ -163,7 +163,7 @@ Converts a Decimal to a String
 -}
 toString : Decimal -> String
 toString (Decimal m e) =
-    let abs_m = if m `Data.Integer.gte` (Data.Integer.fromInt 0) then m else Data.Integer.opposite m
+    let abs_m = if m `Data.Integer.gte` (Data.Integer.fromInt 0) then m else Data.Integer.negate m
         s = Data.Integer.toString abs_m
         sign = if m `Data.Integer.gte` (Data.Integer.fromInt 0) then "" else "-"
         add_zeros n = String.repeat n "0"
@@ -233,7 +233,7 @@ add a b =
 Changes the sign of a Decimal
 -}
 negate : Decimal -> Decimal
-negate (Decimal m e) = Decimal (Data.Integer.opposite m) e
+negate (Decimal m e) = Decimal (Data.Integer.negate m) e
 
 {-|
 Substraction
@@ -254,7 +254,7 @@ Absolute value (sets the sign as positive)
 abs : Decimal -> Decimal
 abs (Decimal m e) =
     case Data.Integer.compare m (Data.Integer.fromInt 0) of
-        LT -> Decimal (Data.Integer.opposite m) e
+        LT -> Decimal (Data.Integer.negate m) e
         _ -> Decimal m e
 
 {-|

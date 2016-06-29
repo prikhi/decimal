@@ -1,9 +1,8 @@
 import Data.Decimal exposing (..)
 import Maybe exposing (Maybe, andThen)
 import ElmTest exposing (..)
-import Graphics.Element exposing (show, flow, down, Element, leftAligned)
 import Check exposing (Claim, claim, that, is, for, quickCheck, true)
-import Check.Producer exposing (list, int, Producer, char, ascii, filter, tuple, map, func2, rangeInt)
+import Check.Producer exposing (list, int, Producer, char, ascii, filter, tuple, map, rangeInt)
 import Check.Test
 
 decimal : Producer Decimal
@@ -209,6 +208,5 @@ allTests =
         , (Check.Test.evidenceToTest (quickCheck qcCompare))
         ]
 
-main : Element
 main = 
-    elementRunner allTests
+    runSuiteHtml allTests

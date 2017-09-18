@@ -1,4 +1,4 @@
-module Example exposing (..)
+module Tests exposing (..)
 
 import Expect
 import Fuzz exposing (Fuzzer, int, intRange, float)

@@ -1,6 +1,6 @@
 {
     "version": "1.0.0",
-    "summary": "Decimal numbers for Elm",
+    "summary": "Arbitrary-Precision Decimal Numbers",
     "repository": "https://github.com/prikhi/decimal.git",
     "license": "BSD3",
     "source-directories": [

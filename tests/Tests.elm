@@ -69,7 +69,7 @@ fromStringTests =
                 Expect.equal (D.fromString "esdf") Nothing
         , fuzz2 int int "exponent" <|
             \a b ->
-                Expect.equal (D.fromString <| toString a ++ "e" ++ toString b)
+                Expect.equal (D.fromString <| String.fromInt a ++ "e" ++ String.fromInt b)
                     (Just <| D.fromIntWithExponent a b)
         , test "decimal" <|
             \_ ->
@@ -97,7 +97,7 @@ fromFloatTests =
                 Expect.equal (D.fromFloat 1.1e0) (D.fromString "1.1e0")
         , fuzz float "equivalent to fromString" <|
             \a ->
-                Expect.equal (D.fromFloat a) (D.fromString <| toString a)
+                Expect.equal (D.fromFloat a) (D.fromString <| String.fromFloat a)
         ]
 
 

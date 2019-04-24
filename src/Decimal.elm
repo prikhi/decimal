@@ -1,32 +1,31 @@
-module Decimal
-    exposing
-        ( Decimal
-        , fromInt
-        , fromIntWithExponent
-        , fromString
-        , fromFloat
-        , toString
-        , toFloat
-        , add
-        , sub
-        , negate
-        , mul
-        , fastdiv
-        , truncate
-        , round
-        , gt
-        , gte
-        , eq
-        , neq
-        , lt
-        , lte
-        , compare
-        , abs
-        , getDigit
-        , zero
-        , one
-        , minusOne
-        )
+module Decimal exposing
+    ( Decimal
+    , fromInt
+    , fromIntWithExponent
+    , fromString
+    , fromFloat
+    , toString
+    , toFloat
+    , add
+    , sub
+    , negate
+    , mul
+    , fastdiv
+    , truncate
+    , round
+    , gt
+    , gte
+    , eq
+    , neq
+    , lt
+    , lte
+    , compare
+    , abs
+    , getDigit
+    , zero
+    , one
+    , minusOne
+    )
 
 {-|
 
@@ -140,15 +139,15 @@ fromString str =
                         Just a ->
                             Just (Decimal a e)
             in
-                case String.split "." s of
-                    [ a, b ] ->
-                        stringIntToDecimal (a ++ b) -(String.length b)
+            case String.split "." s of
+                [ a, b ] ->
+                    stringIntToDecimal (a ++ b) -(String.length b)
 
-                    [ a ] ->
-                        stringIntToDecimal a 0
+                [ a ] ->
+                    stringIntToDecimal a 0
 
-                    _ ->
-                        Nothing
+                _ ->
+                    Nothing
 
         makeMantissa s =
             case String.split "." s of
@@ -172,12 +171,12 @@ fromString str =
                 _ ->
                     ( Nothing, Nothing )
     in
-        case splitMantissaExponent str of
-            ( Just (Decimal m a), Just e ) ->
-                Just (Decimal m (e + a))
+    case splitMantissaExponent str of
+        ( Just (Decimal m a), Just e ) ->
+            Just (Decimal m (e + a))
 
-            _ ->
-                Nothing
+        _ ->
+            Nothing
 
 
 insert_decimal_period : Int -> String -> String
@@ -189,6 +188,7 @@ insert_decimal_period pos s =
         padded_s =
             if extra_zeros >= 0 then
                 String.repeat (extra_zeros + 1) "0" ++ s
+
             else
                 s
 
@@ -198,7 +198,7 @@ insert_decimal_period pos s =
         after =
             String.right pos padded_s
     in
-        before ++ "." ++ after
+    before ++ "." ++ after
 
 
 {-| Converts a Decimal to a String
@@ -209,6 +209,7 @@ toString (Decimal m e) =
         abs_m =
             if BigInt.gte m (BigInt.fromInt 0) then
                 m
+
             else
                 BigInt.negate m
 
@@ -218,21 +219,22 @@ toString (Decimal m e) =
         sign =
             if BigInt.gte m (BigInt.fromInt 0) then
                 ""
+
             else
                 "-"
 
         add_zeros n =
             String.repeat n "0"
     in
-        case Basics.compare e 0 of
-            EQ ->
-                sign ++ s
+    case Basics.compare e 0 of
+        EQ ->
+            sign ++ s
 
-            GT ->
-                sign ++ s ++ add_zeros e
+        GT ->
+            sign ++ s ++ add_zeros e
 
-            LT ->
-                sign ++ insert_decimal_period (0 - e) s
+        LT ->
+            sign ++ insert_decimal_period (0 - e) s
 
 
 {-| Converts a Decimal to a Float
@@ -268,7 +270,7 @@ fastdiv a b =
         res =
             fa / fb
     in
-        fromFloat res
+    fromFloat res
 
 
 addDecimals : Int -> Decimal -> Decimal
@@ -277,12 +279,14 @@ addDecimals i (Decimal m e) =
         mul10 x =
             BigInt.mul x (BigInt.fromInt 10)
     in
-        if i == 0 then
-            Decimal m e
-        else if i > 0 then
-            addDecimals (i - 1) (Decimal (mul10 m) (e - 1))
-        else
-            Decimal m e
+    if i == 0 then
+        Decimal m e
+
+    else if i > 0 then
+        addDecimals (i - 1) (Decimal (mul10 m) (e - 1))
+
+    else
+        Decimal m e
 
 
 toExponent : Exponent -> Decimal -> Decimal
@@ -302,7 +306,7 @@ toCommonExponent ( a, b ) =
         exponent =
             min ea eb
     in
-        ( toExponent exponent a, toExponent exponent b )
+    ( toExponent exponent a, toExponent exponent b )
 
 
 {-| Addition
@@ -319,7 +323,7 @@ add a b =
         (Decimal mb eb) =
             rb
     in
-        Decimal (BigInt.add ma mb) ea
+    Decimal (BigInt.add ma mb) ea
 
 
 {-| Changes the sign of a Decimal
@@ -369,7 +373,7 @@ compare a b =
         (Decimal mb eb) =
             fb
     in
-        BigInt.compare ma mb
+    BigInt.compare ma mb
 
 
 {-| Equals
@@ -517,27 +521,27 @@ getDigit n dec =
                 _ ->
                     -1
     in
-        case ( String.split "." s, Basics.compare n 0 ) of
-            ( [ a ], GT ) ->
-                toInt (String.right 1 (String.dropRight n a))
+    case ( String.split "." s, Basics.compare n 0 ) of
+        ( [ a ], GT ) ->
+            toInt (String.right 1 (String.dropRight n a))
 
-            ( [ a ], EQ ) ->
-                toInt (String.right 1 a)
+        ( [ a ], EQ ) ->
+            toInt (String.right 1 a)
 
-            ( [ a ], LT ) ->
-                0
+        ( [ a ], LT ) ->
+            0
 
-            ( [ a, b ], GT ) ->
-                toInt (String.right 1 (String.dropRight n a))
+        ( [ a, b ], GT ) ->
+            toInt (String.right 1 (String.dropRight n a))
 
-            ( [ a, b ], EQ ) ->
-                toInt (String.right 1 a)
+        ( [ a, b ], EQ ) ->
+            toInt (String.right 1 a)
 
-            ( [ a, b ], LT ) ->
-                toInt (String.left 1 (String.dropLeft (-n - 1) b))
+        ( [ a, b ], LT ) ->
+            toInt (String.left 1 (String.dropLeft (-n - 1) b))
 
-            _ ->
-                -13
+        _ ->
+            -13
 
 
 {-| Truncates the Decimal to the specified decimal places
@@ -556,21 +560,21 @@ truncate n d =
                 Nothing ->
                     zero
     in
-        case ( String.split "." str, n >= 0 ) of
-            ( [ a ], True ) ->
-                toDecimal (String.dropRight n a ++ String.repeat n "0")
+    case ( String.split "." str, n >= 0 ) of
+        ( [ a ], True ) ->
+            toDecimal (String.dropRight n a ++ String.repeat n "0")
 
-            ( [ a ], False ) ->
-                toDecimal a
+        ( [ a ], False ) ->
+            toDecimal a
 
-            ( [ a, b ], True ) ->
-                toDecimal (String.dropRight n a ++ String.repeat n "0")
+        ( [ a, b ], True ) ->
+            toDecimal (String.dropRight n a ++ String.repeat n "0")
 
-            ( [ a, b ], False ) ->
-                toDecimal (a ++ "." ++ String.left -n b)
+        ( [ a, b ], False ) ->
+            toDecimal (a ++ "." ++ String.left -n b)
 
-            _ ->
-                zero
+        _ ->
+            zero
 
 
 signAsInt : Decimal -> Int
@@ -600,7 +604,8 @@ round n d =
         to_increment =
             fromIntWithExponent (signAsInt d) n
     in
-        if next_digit >= 5 then
-            add t to_increment
-        else
-            t
+    if next_digit >= 5 then
+        add t to_increment
+
+    else
+        t

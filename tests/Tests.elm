@@ -1,9 +1,9 @@
-module Tests exposing (..)
+module Tests exposing (addTests, compareTests, decimal, fastdivTests, fromFloatTests, fromStringTests, getDigitTests, mulTests, roundTests, subTests, toStringTests, truncateTests)
 
-import Expect
-import Fuzz exposing (Fuzzer, int, intRange, float)
-import Test exposing (..)
 import Decimal as D
+import Expect
+import Fuzz exposing (Fuzzer, float, int, intRange)
+import Test exposing (..)
 
 
 decimal : Fuzzer D.Decimal
@@ -41,15 +41,15 @@ mulTests =
         safeInt =
             intRange -46340 46340
     in
-        describe "Decimal.mul"
-            [ fuzz2 safeInt safeInt "mirrors normal multiplication" <|
-                \a b ->
-                    Expect.true "Expected multiplication to mimic integer multiplication" <|
-                        D.eq (D.mul (D.fromInt a) (D.fromInt b)) (D.fromInt <| a * b)
-            , fuzz2 decimal decimal "is commutative" <|
-                \a b ->
-                    Expect.equal (D.mul a b) (D.mul b a)
-            ]
+    describe "Decimal.mul"
+        [ fuzz2 safeInt safeInt "mirrors normal multiplication" <|
+            \a b ->
+                Expect.true "Expected multiplication to mimic integer multiplication" <|
+                    D.eq (D.mul (D.fromInt a) (D.fromInt b)) (D.fromInt <| a * b)
+        , fuzz2 decimal decimal "is commutative" <|
+            \a b ->
+                Expect.equal (D.mul a b) (D.mul b a)
+        ]
 
 
 fromStringTests : Test

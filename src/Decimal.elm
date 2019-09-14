@@ -25,6 +25,7 @@ module Decimal exposing
     , zero
     , one
     , minusOne
+    , pow
     )
 
 {-|
@@ -345,6 +346,11 @@ sub a b =
 mul : Decimal -> Decimal -> Decimal
 mul (Decimal ma ea) (Decimal mb eb) =
     Decimal (BigInt.mul ma mb) (ea + eb)
+
+
+pow : Decimal -> Int -> Decimal
+pow (Decimal ma ea) exponent =
+    Decimal (BigInt.pow ma (BigInt.fromInt exponent)) (ea * exponent)
 
 
 {-| Absolute value (sets the sign as positive)

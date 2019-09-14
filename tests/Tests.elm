@@ -1,8 +1,8 @@
-module Tests exposing (addTests, compareTests, decimal, fastdivTests, fromFloatTests, fromStringTests, getDigitTests, mulTests, roundTests, subTests, toStringTests, truncateTests)
+module Tests exposing (addTests, compareTests, decimal, fastdivTests, fromFloatTests, fromStringTests, getDigitTests, mulTests, powTests, roundTests, subTests, toStringTests, truncateTests)
 
 import Decimal as D
 import Expect
-import Fuzz exposing (Fuzzer, float, int, intRange)
+import Fuzz exposing (Fuzzer, float, floatRange, int, intRange)
 import Test exposing (..)
 
 
@@ -49,6 +49,31 @@ mulTests =
         , fuzz2 decimal decimal "is commutative" <|
             \a b ->
                 Expect.equal (D.mul a b) (D.mul b a)
+        ]
+
+
+powTests : Test
+powTests =
+    let
+        safeInt =
+            intRange 0 10
+
+        safeFloat =
+            floatRange -10 10
+    in
+    describe "Decimal.pow"
+        [ fuzz2 safeFloat safeInt "mirrors normal exponents" <|
+            \initial exponent ->
+                let
+                    initialD =
+                        initial
+                            |> D.fromFloat
+                            |> Maybe.withDefault D.one
+
+                    expected =
+                        initial ^ toFloat exponent
+                in
+                Expect.within (Expect.Absolute 0.00001) (D.toFloat (D.pow initialD exponent)) expected
         ]
 
 

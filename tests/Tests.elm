@@ -116,6 +116,9 @@ toStringTests =
         , test "decimal" <|
             \_ ->
                 Expect.equal "-1234.5678" (D.toString <| D.fromIntWithExponent -12345678 -4)
+        , test "zeros" <|
+            \_ ->
+                Expect.equal "0.123" (D.toString <| Maybe.withDefault (D.fromInt -1) <| D.fromString "0.123000")
         ]
 
 

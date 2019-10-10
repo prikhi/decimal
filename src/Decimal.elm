@@ -179,8 +179,19 @@ fromString str =
             Nothing
 
 
-string_trailing_zeros : String -> String 
-string_trailing_zeros str = String.foldr (\c s -> if c == '0' && (String.length s == 0) then "" else (String.cons c s)) "" str
+string_trailing_zeros : String -> String
+string_trailing_zeros str =
+    String.foldr
+        (\c s ->
+            if c == '0' && (String.length s == 0) then
+                ""
+
+            else
+                String.cons c s
+        )
+        ""
+        str
+
 
 insert_decimal_period : Int -> String -> String
 insert_decimal_period pos s =
@@ -199,7 +210,7 @@ insert_decimal_period pos s =
             String.dropRight pos padded_s
 
         after =
-           string_trailing_zeros <| String.right pos padded_s
+            string_trailing_zeros <| String.right pos padded_s
     in
     before ++ "." ++ after
 

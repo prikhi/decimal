@@ -179,8 +179,8 @@ fromString str =
             Nothing
 
 
-string_trailing_zeros : String -> String
-string_trailing_zeros str =
+strip_trailing_zeros : String -> String
+strip_trailing_zeros str =
     String.foldr
         (\c s ->
             if c == '0' && (String.length s == 0) then
@@ -210,9 +210,14 @@ insert_decimal_period pos s =
             String.dropRight pos padded_s
 
         after =
-            string_trailing_zeros <| String.right pos padded_s
+            strip_trailing_zeros <| String.right pos padded_s
     in
-    before ++ "." ++ after
+    case String.length after == 0 of
+        True ->
+            before
+
+        False ->
+            before ++ "." ++ after
 
 
 {-| Converts a Decimal to a String
